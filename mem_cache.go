@@ -1,8 +1,6 @@
 package gotool
 
-import (
-	"time"
-)
+import "time"
 
 type memItem struct {
 	item                interface{}
@@ -40,7 +38,11 @@ func (m *MemCache) Get(key string) (interface{}, bool) {
 	if !ok {
 		return nil, false
 	}
+	if mItem.expiredIntervalSecs == 0 {
+		return mItem.item, true
+	}
 	if time.Now().After(mItem.lastUpdatedTime.Add(time.Second * time.Duration(mItem.expiredIntervalSecs))) {
+		delete(m.cached, key)
 		return nil, false
 	}
 	return mItem.item, true
