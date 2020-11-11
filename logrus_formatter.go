@@ -27,6 +27,7 @@ type ESConfig struct {
 	Password  string        `json:"password"`
 	Level     *logrus.Level `json:"level"`
 	IndexName string        `json:"index_name"`
+	Sniff     bool          `json:"sniff"`
 }
 
 func LogrusES(config *ESConfig) {
@@ -37,7 +38,7 @@ func LogrusES(config *ESConfig) {
 	LogrusFormat(level)
 	client, err := elastic.NewClient(elastic.SetURL(config.Url),
 		elastic.SetBasicAuth(config.UserName, config.Password),
-		elastic.SetSniff(false))
+		elastic.SetSniff(config.Sniff))
 	if err != nil {
 		logrus.Panicf("%v", err.Error())
 		return
