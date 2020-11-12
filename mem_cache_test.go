@@ -1,6 +1,7 @@
 package gotool
 
 import (
+	"context"
 	"testing"
 	"time"
 )
@@ -8,7 +9,8 @@ import (
 func TestBasicOps(t *testing.T) {
 	key := "TestKey"
 	value := "Test"
-	cache := NewMemCache()
+	ctx := context.Background()
+	cache := NewMemCache(ctx)
 	cache.Put(key, value, 5)
 	c, isExisting := cache.Get(key)
 	if !isExisting {
@@ -18,10 +20,10 @@ func TestBasicOps(t *testing.T) {
 	if str != value {
 		t.Error("get the wrong value from cache")
 	}
-	time.Sleep(6 * time.Second)
+	time.Sleep(210 * time.Second)
 	_, isExisting = cache.Get(key)
 	if isExisting {
 		t.Error("failed to set expired policy for cache")
 	}
-
+	cache.Destroy()
 }

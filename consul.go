@@ -3,6 +3,7 @@ package gotool
 import (
 	"errors"
 	"github.com/hashicorp/consul/api"
+	"strings"
 )
 
 var ErrConsulKeyNotExist = errors.New("consul: key not exist")
@@ -29,7 +30,7 @@ func NewConsul(address string) *Consul {
 	return consul
 }
 
-func (c *Consul) GetKey(key string) ([]byte, error) {
+func (c *Consul) GetKey(key string) (*string, error) {
 	pair, _, err := c.kv.Get(key, nil)
 	if err != nil {
 		return nil, err
@@ -37,7 +38,8 @@ func (c *Consul) GetKey(key string) ([]byte, error) {
 	if pair == nil {
 		return nil, ErrConsulKeyNotExist
 	}
-	return pair.Value, nil
+	str := string(pair.Value)
+	return &str, nil
 }
 
 func (c *Consul) GetService(service string) ([]*api.ServiceEntry, error) {
@@ -45,13 +47,14 @@ func (c *Consul) GetService(service string) ([]*api.ServiceEntry, error) {
 	return entry, err
 }
 
-func (c *Consul) PutKey(key string, value []byte) error {
+func (c *Consul) PutKey(key string, str string) error {
+	value := []byte(str)
 	pair := &api.KVPair{Key: key, Value: value}
 	_, err := c.kv.Put(pair, nil)
 	return err
 }
 
-func (c *Consul) GetList(key string) (api.KVPairs, error) {
+func (c *Consul) GetList(key string, cut ...string) (*map[string]string, error) {
 	pair, _, err := c.kv.List(key, nil)
 	if err != nil {
 		return nil, err
@@ -59,5 +62,18 @@ func (c *Consul) GetList(key string) (api.KVPairs, error) {
 	if len(pair) == 0 {
 		return nil, ErrConsulKeyNotExist
 	}
-	return pair, nil
+	keyCut := ""
+	if len(cut) > 0 {
+		keyCut = cut[0]
+	}
+
+	mapData := make(map[string]string)
+
+	for _, d := range pair {
+		k := strings.ReplaceAll(d.Key, keyCut, "")
+		v := string(d.Value)
+		mapData[k] = v
+	}
+
+	return &mapData, nil
 }
