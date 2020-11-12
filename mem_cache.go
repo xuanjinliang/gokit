@@ -64,7 +64,6 @@ func (m *MemCache) Get(key string) (interface{}, bool) {
 	}
 
 	if time.Now().After(assertMItem.lastUpdatedTime.Add(time.Second * time.Duration(assertMItem.expiredIntervalSecs))) {
-		m.Delete(key)
 		return nil, false
 	}
 	return assertMItem.item, true
